@@ -317,7 +317,10 @@ open_ssl_connection (rfbClient *client, int sockfd, rfbBool anonTLS, rfbCredenti
       }
     }
 
-    SSL_CTX_set_verify(ssl_ctx, SSL_VERIFY_PEER, NULL);
+    if (verify_crls == rfbX509CrlVerifyNone)
+      SSL_CTX_set_verify(ssl_ctx, SSL_VERIFY_NONE, NULL);
+    else
+      SSL_CTX_set_verify(ssl_ctx, SSL_VERIFY_PEER, NULL);
 
     if (verify_crls == rfbX509CrlVerifyClient) 
       X509_VERIFY_PARAM_set_flags(param, X509_V_FLAG_CRL_CHECK);

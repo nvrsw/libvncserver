@@ -438,6 +438,12 @@ static rfbCredential* get_credential(rfbClient* cl, int credentialType){
 	if (!c) {
 		return NULL;
 	}
+
+	if (credentialType == rfbCredentialTypeX509) {
+	  memset (c, 0x00, sizeof (*c));
+		return c;
+	}
+
 	c->userCredential.username = malloc(RFB_BUF_SIZE);
 	if (!c->userCredential.username) {
 		free(c);
@@ -557,4 +563,3 @@ int main(int argc,char** argv) {
 
 	return 0;
 }
-

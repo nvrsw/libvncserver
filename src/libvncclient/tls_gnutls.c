@@ -409,24 +409,26 @@ CreateX509CertCredential(rfbCredential *cred)
   gnutls_certificate_credentials_t x509_cred;
   int ret;
 
-  if (!cred->x509Credential.x509CACertFile)
-  {
-    rfbClientLog("No CA certificate provided.\n");
-    return NULL;
-  }
-
   if ((ret = gnutls_certificate_allocate_credentials(&x509_cred)) < 0)
   {
     rfbClientLog("Cannot allocate credentials: %s.\n", gnutls_strerror(ret));
     return NULL;
   }
-  if ((ret = gnutls_certificate_set_x509_trust_file(x509_cred,
-    cred->x509Credential.x509CACertFile, GNUTLS_X509_FMT_PEM)) < 0)
+
+  if (cred->x509Credential.x509CACertFile)
   {
-    rfbClientLog("Cannot load CA credentials: %s.\n", gnutls_strerror(ret));
-    gnutls_certificate_free_credentials (x509_cred);
-    return NULL;
+    if ((ret = gnutls_certificate_set_x509_trust_file(x509_cred,
+      cred->x509Credential.x509CACertFile, GNUTLS_X509_FMT_PEM)) < 0)
+    {
+      rfbClientLog("Cannot load CA credentials: %s.\n", gnutls_strerror(ret));
+      gnutls_certificate_free_credentials (x509_cred);
+      return NULL;
+    }
+  } else
+  {
+    rfbClientLog("No CA certificate provided.\n");
   }
+
   if (cred->x509Credential.x509ClientCertFile && cred->x509Credential.x509ClientKeyFile)
   {
     if ((ret = gnutls_certificate_set_x509_key_file(x509_cred,
@@ -575,7 +577,7 @@ HandleVeNCryptAuth(rfbClient* client)
   else
   {
     /* Set the certificate verification callback. */
-    gnutls_certificate_set_verify_function (x509_cred, verify_certificate_callback);
+    gnutls_certificate_set_verify_function (x509_cred, NULL);
     gnutls_session_set_ptr ((gnutls_session_t)client->tlsSession, (void *)client);
 
     if ((ret = gnutls_credentials_set((gnutls_session_t)client->tlsSession, GNUTLS_CRD_CERTIFICATE, x509_cred)) < 0)
@@ -659,4 +661,3 @@ GetTLSCipherBits(rfbClient* client)
     return gnutls_cipher_get_key_size(cipher) * 8;
 }
 #endif /* LIBVNCSERVER_HAVE_SASL */
-
