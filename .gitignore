@@ -5,6 +5,7 @@ LibVNCServer*.tar.gz
 build/
 doc/html/
 .ccls-cache
+.cache
 .cachexs
 .log
 compile_commands.json
